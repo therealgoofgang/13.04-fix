@@ -7834,7 +7834,10 @@ namespace hooks
 
         printf("[DEBUG] Getting LocalPlayer...\n");
         // Read local players array directly using offset
-        tarray<ulocalplayer*>* local_players_array = memory::read<tarray<ulocalplayer*>*>(uintptr_t(gameinstance) + offsets::LocalPlayers);
+        uintptr_t local_players_addr = uintptr_t(gameinstance) + offsets::LocalPlayers;
+        printf("[DEBUG] Reading local_players at address: 0x%llX\n", local_players_addr);
+        
+        tarray<ulocalplayer*>* local_players_array = memory::read<tarray<ulocalplayer*>*>(local_players_addr);
         printf("[DEBUG] local_players_array: %p\n", local_players_array);
         
         if (!local_players_array) {
@@ -7842,15 +7845,38 @@ namespace hooks
             return;
         }
         
-        printf("[DEBUG] local_players count: %d\n", local_players_array->count);
+        // Check if pointer looks valid (not too high/low)
+        if ((uintptr_t)local_players_array < 0x10000 || (uintptr_t)local_players_array > 0x7FFFFFFFFFFF) {
+            printf("[DEBUG] local_players_array pointer looks invalid: %p\n", local_players_array);
+            return;
+        }
         
-        if (local_players_array->count == 0) {
+        // Try to read count safely
+        int32_t player_count = 0;
+        try {
+            player_count = memory::read<int32_t>((uintptr_t)local_players_array + offsetof(tarray<ulocalplayer*>, count));
+            printf("[DEBUG] local_players count: %d\n", player_count);
+        } catch (...) {
+            printf("[DEBUG] Failed to read local_players count - invalid pointer!\n");
+            return;
+        }
+        
+        if (player_count == 0) {
             printf("[DEBUG] No local players in array!\n");
             return;
         }
         
-        ulocalplayer* localplayer = local_players_array->data[0];
-        printf("[DEBUG] localplayer: %p\n", localplayer);
+        // Try to read first player safely
+        ulocalplayer* localplayer = nullptr;
+        try {
+            uintptr_t data_ptr = memory::read<uintptr_t>((uintptr_t)local_players_array + offsetof(tarray<ulocalplayer*>, data));
+            localplayer = memory::read<ulocalplayer*>(data_ptr);
+            printf("[DEBUG] localplayer: %p\n", localplayer);
+        } catch (...) {
+            printf("[DEBUG] Failed to read localplayer - invalid pointer!\n");
+            return;
+        }
+        
         if (!localplayer) {
             printf("[DEBUG] First localplayer is null!\n");
             return;
