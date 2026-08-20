@@ -5074,7 +5074,7 @@ namespace hooks
     }
 
     void hk_draw_transition(ugameviewportclient* viewportclient, ucanvas* canvas_, std::uintptr_t a3) {
-        printf("[DEBUG] hk_draw_transition ENTERED\n");
+        printf("[DEBUG] hk_draw_transition ENTERED - CANVAS: %p\n", canvas_);
 
         // ── FPS BOOST ────────────────────────────────────────────────────────
         // Yalnızca state değiştiğinde uygula (her frame çağrılmasın)
@@ -5118,8 +5118,12 @@ namespace hooks
             }
         }
         // ── FPS BOOST SONU ───────────────────────────────────────────────────
+        
+        // Use the provided canvas directly - don't try to find a different one
+        ucanvas* canvas = canvas_;
+        
         if (!canvas) {
-            printf("[DEBUG] Finding canvas...\n");
+            printf("[DEBUG] Canvas is null! Trying to find alternative...\n");
             canvas = uobject::find_object<ucanvas*>(L"/Engine/Transient.DebugCanvasObject", (uobject*)-1);
         }
 
