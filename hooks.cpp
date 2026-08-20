@@ -7866,10 +7866,11 @@ namespace hooks
         }
 
 
-        printf("[DEBUG] Reading LocalController...\n");
-        aplayercontroller* LocalController = memory::read<aplayercontroller*>((uintptr_t)localplayer + 0x38);
+        printf("[DEBUG] Reading LocalController... offset: 0x%llX\n", offsets::local_controller);
+        aplayercontroller* LocalController = memory::read<aplayercontroller*>((uintptr_t)localplayer + offsets::local_controller);
         printf("[DEBUG] LocalController: %p\n", LocalController);
         if (!LocalController) {
+            printf("[DEBUG] LocalController is null!\n");
             return;
         }
 
@@ -7881,18 +7882,20 @@ namespace hooks
             return;
         }
 
-        printf("[DEBUG] Reading Engine...\n");
-        uintptr_t Engine = memory::read<uintptr_t>((uintptr_t)gameinstance + 0x28);
+        printf("[DEBUG] Reading Engine... offset: 0x%llX\n", offsets::engine);
+        uintptr_t Engine = memory::read<uintptr_t>((uintptr_t)gameinstance + offsets::engine);
         printf("[DEBUG] Engine: 0x%llX\n", Engine);
         if (!Engine) {
+            printf("[DEBUG] Engine is null!\n");
             return;
         }
 
 
-        printf("[DEBUG] Reading Menu Font...\n");
-        menu::font = memory::read<uobject*>((uintptr_t)Engine + 0x98);
+        printf("[DEBUG] Reading Menu Font... offset: 0x%llX\n", offsets::font);
+        menu::font = memory::read<uobject*>((uintptr_t)Engine + offsets::font);
         printf("[DEBUG] menu::font: %p\n", menu::font);
         if (!menu::font) {
+            printf("[DEBUG] menu::font is null!\n");
             return;
         }
 
