@@ -7833,50 +7833,74 @@ namespace hooks
         }
 
         printf("[DEBUG] Getting LocalPlayer...\n");
-        // Read local players array directly using offset - tarray is usually inline, not a pointer
-        uintptr_t local_players_addr = uintptr_t(gameinstance) + offsets::LocalPlayers;
-        printf("[DEBUG] Reading local_players at address: 0x%llX\n", local_players_addr);
         
-        // Try reading as inline tarray first
+        // The offset 0x40 is wrong. Let's try to find the correct offset by scanning.
+        // Try common UE offsets around GameInstance
+        ulocalplayer* localplayer = nullptr;
         tarray<ulocalplayer*> local_players_array;
-        try {
-            local_players_array = memory::read<tarray<ulocalplayer*>>(local_players_addr);
-            printf("[DEBUG] local_players count: %d\n", local_players_array.count);
-        } catch (...) {
-            printf("[DEBUG] Failed to read local_players as inline tarray, trying as pointer...\n");
+        bool found = false;
+        
+        // Common UE offsets to try (in bytes)
+        std::vector<uintptr_t> offsets_to_try = {
+            0x30, 0x38, 0x40, 0x48, 0x50, 0x58, 0x60, 0x68, 0x70, 0x78,
+            0x80, 0x88, 0x90, 0x98, 0xA0, 0xA8, 0xB0, 0xB8, 0xC0
+        };
+        
+        for (uintptr_t offset : offsets_to_try) {
+            uintptr_t test_addr = uintptr_t(gameinstance) + offset;
             
-            // Try as pointer instead
-            tarray<ulocalplayer*>* local_players_array_ptr = memory::read<tarray<ulocalplayer*>*>(local_players_addr);
-            printf("[DEBUG] local_players_array pointer: %p\n", local_players_array_ptr);
-            
-            if (!local_players_array_ptr) {
-                printf("[DEBUG] local_players_array is null!\n");
-                return;
-            }
-            
-            // Try to read from pointer
             try {
-                local_players_array = memory::read<tarray<ulocalplayer*>>((uintptr_t)local_players_array_ptr);
-                printf("[DEBUG] local_players count (from pointer): %d\n", local_players_array.count);
+                // Try reading as inline tarray
+                tarray<ulocalplayer*> test_array = memory::read<tarray<ulocalplayer*>>(test_addr);
+                
+                // Check if this looks like a valid tarray
+                if (test_array.count >= 0 && test_array.count <= 10 && test_array.data != 0) {
+                    // Try to read the first element to verify
+                    ulocalplayer* test_player = memory::read<ulocalplayer*>(test_array.data);
+                    if (test_player != 0 && (uintptr_t)test_player > 0x10000) {
+                        local_players_array = test_array;
+                        localplayer = test_player;
+                        printf("[DEBUG] FOUND local_players at offset 0x%llX!\n", offset);
+                        printf("[DEBUG] local_players count: %d\n", local_players_array.count);
+                        printf("[DEBUG] localplayer: %p\n", localplayer);
+                        found = true;
+                        break;
+                    }
+                }
             } catch (...) {
-                printf("[DEBUG] Failed to read local_players from pointer!\n");
-                return;
+                // Skip this offset if read fails
+                continue;
             }
         }
         
-        if (local_players_array.count == 0) {
-            printf("[DEBUG] No local players in array! (might be in lobby)\n");
-            // Don't return - maybe we can still get viewportclient another way
-            // But we need localplayer for viewportclient...
-            printf("[DEBUG] Can't proceed without localplayer, returning\n");
-            return;
+        if (!found) {
+            printf("[DEBUG] Could not find local_players array! Tried offsets: ");
+            for (uintptr_t offset : offsets_to_try) {
+                printf("0x%llX ", offset);
+            }
+            printf("\n");
+            
+            // Try one more thing: maybe local_players is a pointer at 0x40, and we need to read it differently
+            printf("[DEBUG] Trying pointer approach at 0x40...\n");
+            uintptr_t possible_ptr = memory::read<uintptr_t>(uintptr_t(gameinstance) + 0x40);
+            if (possible_ptr > 0x10000) {
+                try {
+                    local_players_array = memory::read<tarray<ulocalplayer*>>(possible_ptr);
+                    if (local_players_array.count > 0 && local_players_array.data != 0) {
+                        localplayer = memory::read<ulocalplayer*>(local_players_array.data);
+                        if (localplayer) {
+                            printf("[DEBUG] Found via pointer! count: %d, localplayer: %p\n", local_players_array.count, localplayer);
+                            found = true;
+                        }
+                    }
+                } catch (...) {
+                    // Failed
+                }
+            }
         }
         
-        ulocalplayer* localplayer = local_players_array.data[0];
-        printf("[DEBUG] localplayer: %p\n", localplayer);
-        
-        if (!localplayer) {
-            printf("[DEBUG] First localplayer is null!\n");
+        if (!found || !localplayer) {
+            printf("[DEBUG] Failed to find localplayer. Can't proceed.\n");
             return;
         }
 
