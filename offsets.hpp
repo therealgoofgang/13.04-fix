@@ -50,49 +50,105 @@ namespace AntiAim {
 
 namespace offsets
 {
-    constexpr uint64_t GWorld = 0xCE0CC40;
+    // === CORE & ENGINE ===
+    constexpr uint64_t GWorld = 0xcf68db0;
+    constexpr uint64_t gworld = GWorld;
     constexpr uint64_t State = GWorld;
-    constexpr uint64_t ObjectArray = 0xce898c0;
-    constexpr uint64_t FnamePool = 0xCFD1D00;
-    constexpr uint64_t FName = 0xE17570;
+    constexpr uint64_t uworldstate = GWorld;
+    constexpr uint64_t GObjects = 0xcf4ec50;
+    constexpr uint64_t ObjectArray = GObjects;
+    constexpr uint64_t FNamePool = 0xd09e540;
+    constexpr uint64_t fname_pool = FNamePool;
+    constexpr uint64_t FNameState = 0xcf5f530;
+    constexpr uint64_t TriggerVEH = 0x1ae68f6;
+    constexpr uint64_t process_event = 0x1ebf9e0;
+    constexpr uint64_t bone_matrix = 0x4399a10;
+    constexpr uint64_t fmemory_malloc = 0x1ab00c0;
+    constexpr uint64_t static_find_object = 0x1eec7b0;
+    constexpr uint64_t static_load_object = 0x1eeff10;
+    constexpr uint64_t set_ares_outline_mode = 0x432f1e0;
+    constexpr uint64_t FPakPlatformFile = 0xcf05aa8;
+    constexpr uint64_t SigningDelegate = 0xd2ab2c8;
 
-    constexpr uint64_t process_event = 0x1E7F700;
-    constexpr uint64_t bone_matrix = 0x433DC40;
+    // === UWORLD & LEVEL STRUCTURES ===
+    constexpr uint64_t PersistentLevel = 0x38; // fallback
+    constexpr uint64_t OwningGameInstance = 0x1d8; // fallback
+    constexpr uint64_t game_instance = 0x1d8; // fallback
+    constexpr uint64_t LocalPlayers = 0x40; // fallback
+    constexpr uint64_t local_players = 0x40; // fallback
 
-    constexpr uint64_t fmemory_malloc = 0x1A8C8E0;
-    constexpr uint64_t static_find_object = 0x1EA5F30;
-    constexpr uint64_t static_laod_object = 0x1EA9690;
+    // === CONTROLLER & PAWN ===
+    constexpr uint64_t PlayerController = 0x38; // fallback
+    constexpr uint64_t local_controller = 0x38; // fallback
+    constexpr uint64_t AcknowledgedPawn = 0x518; // fallback
+    constexpr uint64_t PlayerCameraManager = 0x528; // fallback
+    constexpr uint64_t cameramaneger = 0x528; // fallback
+    constexpr uint64_t ControlRotation = 0x4e8; // fallback
+    constexpr uint64_t CameraCachePrivate = 0x17b0; // fallback
+    constexpr uint64_t CameraCache = 0x17b0; // fallback
+    constexpr uint64_t camerafov = 0x580; // fallback
+    constexpr uint64_t camerarot = 0x59c; // fallback
 
-    constexpr uint64_t set_ares_outline_mode = 0x42D4860;
+    // === ACTOR & CHARACTER ===
+    constexpr uint64_t RootComponent = 0x290; // fallback
+    constexpr uint64_t Rootcomponent = 0x290; // fallback
+    constexpr uint64_t RelativeLocation = 0x170; // fallback
+    constexpr uint64_t root_position = 0x170; // fallback
+    constexpr uint64_t RelativeRotation = 0x188; // fallback
+    constexpr uint64_t relative_rotation = 0x188; // fallback
+    constexpr uint64_t PlayerState = 0x488; // fallback
+    constexpr uint64_t player_state = 0x488; // fallback
+    constexpr uint64_t Mesh = 0x4f0; // fallback
+    constexpr uint64_t mesh = 0x4f0; // fallback
 
+    // === SKELETAL MESH & BONES ===
+    constexpr uint64_t BoneArray = 0x760; // fallback
+    constexpr uint64_t BoneCount = 0x768; // fallback
+    constexpr uint64_t bone_cout = 0x768; // fallback
+
+    // === HEALTH & DAMAGE ===
+    constexpr uint64_t DamageHandler = 0xc68; // fallback
+    constexpr uint64_t Health = 0x200; // fallback
+    constexpr uint64_t Shield = 0x208; // fallback
+    constexpr uint64_t MaxShield = 0x20c; // fallback
+    constexpr uint64_t ShieldType = 0x210; // fallback
+
+    // === INVENTORY & WEAPONS ===
+    constexpr uint64_t Inventory = 0xc08; // fallback
+    constexpr uint64_t inventory = 0xc08; // fallback
+    constexpr uint64_t CurrentEquippable = 0x278; // fallback
+    constexpr uint64_t Equippable = 0x278; // fallback
+    constexpr uint64_t equippable = 0x278; // fallback
+    constexpr uint64_t FiringStateComp = 0x1228; // fallback
+
+    // === PLAYER STATE & RANKS ===
+    constexpr uint64_t TeamComponent = 0x6a8; // fallback
+    constexpr uint64_t TeamId = 0xe8; // fallback
+    constexpr uint64_t CompetitiveTier = 0x78c; // fallback
+    constexpr uint64_t competitive_tier = 0x78c; // fallback
+    constexpr uint64_t AccountLevel = 0x66c; // fallback
+    constexpr uint64_t PlayerNamePrivate = 0x508; // fallback
+    constexpr uint64_t player_name_private = 0x508; // fallback
+
+    // === OBJECTS / SPIKE ===
+    constexpr uint64_t SpikeTimer = 0x5a8; // fallback
+    constexpr uint64_t bomb_time_remaining = 0x5a8; // fallback
+    constexpr uint64_t SpikeDefuseProgress = 0x5d0; // fallback
+    constexpr uint64_t defuse_percentage = 0x5d0; // fallback
+
+    // === EXISTING OFFSETS (Preserved from original file) ===
     constexpr uint64_t magic = 0x52A3450;
 
     constexpr uint64_t charm_map = 0x440;
     constexpr uint64_t projectile_component = 0x464;
 
     constexpr uint64_t RelativeScale3D = 0x1A0;
-    constexpr uint64_t TriggerVEH = 0x1AC3116;
-
-    constexpr uint64_t DefuseTimer = 0x05D0;
-    constexpr uint64_t Timer = 0x05A8;
-
-    constexpr uint64_t relative_rotation = 0x188;
-    constexpr uint64_t cameramaneger = 0x528;
-    constexpr uint64_t mesh = 0x4F0;
 
     constexpr uint64_t camerapos = 0x17C0;
-    constexpr uint64_t camerafov = 0x17F0;
-    constexpr uint64_t camerarot = 0x17D8;
-
-    constexpr uint64_t game_instance = 0x1D8;
-    constexpr uint64_t local_players = 0x40;
     constexpr uint64_t viewport_client = 0x80;
 
     constexpr uint64_t engine = 0x28;
-    constexpr uint64_t local_controller = 0x38;
-
     constexpr uintptr_t mesh_fp_flag = 0x394;
-
 
     constexpr uint64_t play_finisher_effect = 0x6995BE0;
 
@@ -100,13 +156,10 @@ namespace offsets
     constexpr uint64_t montage_effect_override_offset = 0x100;
     constexpr uint64_t montage_effect_override_context_offset = 0x108;
 
-    constexpr uint64_t bone_cout = 0x768;
-
     constexpr uint64_t mtkv = 99;
 
     constexpr uint64_t object_class = 0x10;
     constexpr uint64_t super_class = 0x48;
-
 
     constexpr uint64_t get_skin_levels = 0x88;
     constexpr uint64_t get_skin_data_asset = 0x120;
@@ -181,7 +234,6 @@ namespace offsets
     constexpr uint64_t to_vector_and_normalize = 0x1B85190;
     constexpr uint64_t to_angle_and_normalize = 0x1B7FC80;
 
-    constexpr uint64_t FiringStateComp = 0x1228;
     constexpr uint64_t get_firing_location_direction = 0x71C84C0;
 
     constexpr uint64_t seed_data = 0x4A0;
@@ -191,17 +243,9 @@ namespace offsets
     constexpr uint64_t error_power = 0x49c;
     constexpr uint64_t error_retries = 0x470;
 
-    constexpr uint64_t Inventory = 0xC08;
-    constexpr uint64_t Equippable = 0x248;
-
-    constexpr uint64_t AccountLevel = 0x77C;
     constexpr uint64_t HideAccountLevel = 0x778;
 
-    constexpr uint64_t player_state = 0x488;
-
     constexpr uint64_t PlatformPlayer = 0x6A0;
-    constexpr uint64_t Rootcomponent = 0x290;
-    constexpr uint64_t root_position = 0x170;
     constexpr uint64_t CameraRadar = 0x1F90;
 
     constexpr uint64_t get_fpak_platform_file = 0xCE3E878;

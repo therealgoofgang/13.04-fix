@@ -12,7 +12,7 @@
 uobject* uobject::StaticLoadObject(uobject* Class, uobject* InOuter, const wchar_t* Name)
 {
 
-	static uintptr_t StaticLoadObjectAddress = memory::module_base + offsets::static_laod_object;
+	static uintptr_t StaticLoadObjectAddress = memory::module_base + offsets::static_load_object;
 	auto StaticLoadObjectFN = reinterpret_cast<uobject * (__fastcall*)(uobject*, uobject*, const wchar_t*, bool)>(StaticLoadObjectAddress);
 	return reinterpret_cast<uobject * (__fastcall*)(uobject*, uobject*, const wchar_t*, bool, uintptr_t, void*)>(spoofcall_stub)(nullptr, reinterpret_cast<uobject*>(-1), Name, false, 0x46C4660, (void*)StaticLoadObjectFN);
 }
@@ -1347,14 +1347,14 @@ aplayercameramanager* aplayercontroller::get_camera_manager() {
 
 //uobject* uobject::static_load_object(uobject* Class, uobject* InOuter, const wchar_t* Name)
 //{
-//	static uintptr_t StaticLoadObjectAddress = memory::module_base + offsets::static_laod_object;
+//	static uintptr_t StaticLoadObjectAddress = memory::module_base + offsets::static_load_object;
 //	auto StaticLoadObjectFN = reinterpret_cast<uobject * (__fastcall*)(uobject*, uobject*, const wchar_t*, bool)>(StaticLoadObjectAddress);
 //	return reinterpret_cast<uobject * (__fastcall*)(uobject*, uobject*, const wchar_t*, bool, uintptr_t, void*)>(spoofcall_stub)(nullptr, reinterpret_cast<uobject*>(-1), Name, false, 0x46C4660, (void*)StaticLoadObjectFN);
 //}
 
 uobject* uobject::static_load_object(uobject* Class, uobject* InOuter, const wchar_t* Name)
 {
-	static uintptr_t StaticLoadObjectAddress = memory::module_base + offsets::static_laod_object;
+	static uintptr_t StaticLoadObjectAddress = memory::module_base + offsets::static_load_object;
 	auto StaticLoadObjectFN = reinterpret_cast<uobject * (__fastcall*)(uobject*, uobject*, const wchar_t*, bool)>(StaticLoadObjectAddress);
 	return reinterpret_cast<uobject * (__fastcall*)(uobject*, uobject*, const wchar_t*, bool, uintptr_t, void*)>(spoofcall_stub)(nullptr, reinterpret_cast<uobject*>(-1), Name, false, 0x46C4660, (void*)StaticLoadObjectFN);
 }
