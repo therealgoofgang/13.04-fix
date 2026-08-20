@@ -7833,17 +7833,35 @@ namespace hooks
         }
 
         printf("[DEBUG] Getting LocalPlayer...\n");
-        ulocalplayer* localplayer = gameinstance->local_players()[0];
+        // Read local players array directly using offset
+        tarray<ulocalplayer*>* local_players_array = memory::read<tarray<ulocalplayer*>*>(uintptr_t(gameinstance) + offsets::LocalPlayers);
+        printf("[DEBUG] local_players_array: %p\n", local_players_array);
+        
+        if (!local_players_array) {
+            printf("[DEBUG] local_players_array is null!\n");
+            return;
+        }
+        
+        printf("[DEBUG] local_players count: %d\n", local_players_array->count);
+        
+        if (local_players_array->count == 0) {
+            printf("[DEBUG] No local players in array!\n");
+            return;
+        }
+        
+        ulocalplayer* localplayer = local_players_array->data[0];
         printf("[DEBUG] localplayer: %p\n", localplayer);
         if (!localplayer) {
+            printf("[DEBUG] First localplayer is null!\n");
             return;
         }
 
 
-        printf("[DEBUG] Getting ViewportClient...\n");
-        ugameviewportclient* viewportclient = localplayer->viewport_client();
+        printf("[DEBUG] Getting ViewportClient... offset: 0x%llX\n", offsets::viewport_client);
+        ugameviewportclient* viewportclient = memory::read<ugameviewportclient*>((uintptr_t)localplayer + offsets::viewport_client);
         printf("[DEBUG] viewportclient: %p\n", viewportclient);
         if (!viewportclient) {
+            printf("[DEBUG] viewportclient is null!\n");
             return;
         }
 
