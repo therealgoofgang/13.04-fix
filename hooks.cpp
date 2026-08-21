@@ -7907,18 +7907,26 @@ namespace hooks
             printf("[DEBUG] GameInstance+0x0040 raw: 0x%016llX (ENCRYPTED?)\n", 
                    memory::read<uint64_t>(uintptr_t(gameinstance) + 0x0040));
             
-            // TRY READING AS POINTER (not TArray)
-            printf("[DEBUG] Trying GameInstance+0x0040 as direct pointer...\n");
-            uintptr_t possible_ptr = memory::read<uintptr_t>(uintptr_t(gameinstance) + 0x0040);
-            if (possible_ptr > 0x10000 && possible_ptr < 0x7FFFFFFFFFFF) {
-                printf("[DEBUG] Possible pointer: %p\n", (void*)possible_ptr);
-                // Try reading as LocalPlayer
-                ulocalplayer* test_player = memory::read<ulocalplayer*>(possible_ptr);
-                if (test_player && (uintptr_t)test_player > 0x10000) {
-                    localplayer = test_player;
-                    printf("[DEBUG] Found localplayer as direct pointer!\n");
-                    printf("[DEBUG] localplayer: %p\n", localplayer);
-                }
+            // SCAN GameInstance memory for LocalPlayer pointer pattern
+            printf("[DEBUG] Scanning GameInstance memory for LocalPlayer...\n");
+            for (uintptr_t offset = 0; offset < 0x500; offset += 8) {
+                try {
+                    uintptr_t test_value = memory::read<uintptr_t>(uintptr_t(gameinstance) + offset);
+                    if (test_value > 0x10000 && test_value < 0x7FFFFFFFFFFF) {
+                        // Check if points to something that looks like LocalPlayer
+                        ulocalplayer* test_player = memory::read<ulocalplayer*>(test_value);
+                        if (test_player && (uintptr_t)test_player > 0x10000) {
+                            // Quick check: read first few bytes
+                            uint64_t header = memory::read<uint64_t>(test_value);
+                            if (header != 0 && header != 0xFFFFFFFFFFFFFFFF) {
+                                localplayer = test_player;
+                                printf("[DEBUG] FOUND LocalPlayer candidate at GameInstance+0x%llX\n", offset);
+                                printf("[DEBUG] Pointer value: %p -> LocalPlayer: %p\n", (void*)test_value, localplayer);
+                                break;
+                            }
+                        }
+                    }
+                } catch (...) {}
             }
             
             if (!localplayer) {
@@ -7926,6 +7934,11 @@ namespace hooks
                 printf("[DEBUG] GameInstance+0x00: 0x%016llX\n", memory::read<uint64_t>(uintptr_t(gameinstance)));
                 printf("[DEBUG] GameInstance+0x08: 0x%016llX\n", memory::read<uint64_t>(uintptr_t(gameinstance) + 0x08));
                 printf("[DEBUG] GameInstance+0x10: 0x%016llX\n", memory::read<uint64_t>(uintptr_t(gameinstance) + 0x10));
+                printf("[DEBUG] GameInstance+0x18: 0x%016llX\n", memory::read<uint64_t>(uintptr_t(gameinstance) + 0x18));
+                printf("[DEBUG] GameInstance+0x20: 0x%016llX\n", memory::read<uint64_t>(uintptr_t(gameinstance) + 0x20));
+                printf("[DEBUG] GameInstance+0x28: 0x%016llX\n", memory::read<uint64_t>(uintptr_t(gameinstance) + 0x28));
+                printf("[DEBUG] GameInstance+0x30: 0x%016llX\n", memory::read<uint64_t>(uintptr_t(gameinstance) + 0x30));
+                printf("[DEBUG] GameInstance+0x38: 0x%016llX\n", memory::read<uint64_t>(uintptr_t(gameinstance) + 0x38));
                 return;
             }
         }
