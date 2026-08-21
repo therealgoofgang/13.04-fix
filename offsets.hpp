@@ -63,14 +63,14 @@ namespace offsets
     constexpr uint64_t fname_pool = FNamePool;
     constexpr uint64_t FNameState = 0xcf5f530;
     
-    // FUNCTION OFFSETS: PATCH 13.04 from scanner (your SUCCESS output)
-    constexpr uint64_t TriggerVEH = 0x1f89b6;        // From: TriggerVeh: 0x1F89B6
-    constexpr uint64_t process_event = 0x25af12e;    // From: ProcessEvent: 0x25AF12E
-    constexpr uint64_t bone_matrix = 0x4a8915e;      // From: BoneMatrix: 0x4A8915E
-    constexpr uint64_t fmemory_malloc = 0x219f80e;   // From: FMemoryMalloc: 0x219F80E
-    constexpr uint64_t static_find_object = 0x25dbefe; // From: StaticFindObject: 0x25DBEFE
-    constexpr uint64_t static_load_object = 0x25df65e; // From: StaticLoadObject: 0x25DF65E
-    constexpr uint64_t set_ares_outline_mode = 0x4a1e92e; // From: SetOutlineMode: 0x4A1E92E
+    // FUNCTION OFFSETS: OLD offsets that WORKED before patch 13.04
+    constexpr uint64_t TriggerVEH = 0x1ac3116;      // OLD
+    constexpr uint64_t process_event = 0x1e7f700;   // OLD
+    constexpr uint64_t bone_matrix = 0x433dc40;      // OLD
+    constexpr uint64_t fmemory_malloc = 0x1a8c8e0;  // OLD
+    constexpr uint64_t static_find_object = 0x1ea5f30; // OLD
+    constexpr uint64_t static_load_object = 0x1ea9690; // OLD
+    constexpr uint64_t set_ares_outline_mode = 0x42d4860; // OLD
     constexpr uint64_t FPakPlatformFile = 0xcf05aa8;
     constexpr uint64_t SigningDelegate = 0xd2ab2c8;
 
