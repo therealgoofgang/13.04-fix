@@ -7834,131 +7834,51 @@ namespace hooks
 
         printf("[DEBUG] Getting LocalPlayer...\n");
         
-        // The offset 0x40 is wrong. Let's try to find the correct offset by scanning.
-        // Try common UE offsets around GameInstance
+        // SIMPLE APPROACH: Use the offsets that worked before
+        // If old version worked, then local_players offset 0x40 should be correct
+        // But reading method might be different
+        
         ulocalplayer* localplayer = nullptr;
-        tarray<ulocalplayer*> local_players_array;
-        bool found = false;
         
-        // DEBUG: Let's see what's actually at GameInstance+0x40
-        printf("[DEBUG] Raw bytes at GameInstance+0x40 (16 bytes):\n");
-        for (int i = 0; i < 16; i++) {
-            uint8_t byte = memory::read<uint8_t>(uintptr_t(gameinstance) + 0x40 + i);
-            printf("%02X ", byte);
+        // Try BOTH methods that might have worked before:
+        
+        // METHOD 1: Direct pointer (GameInstance->LocalPlayers as pointer)
+        printf("[DEBUG] Method 1: Reading as pointer...\n");
+        uintptr_t localplayer_ptr = memory::read<uintptr_t>(uintptr_t(gameinstance) + offsets::LocalPlayers);
+        printf("[DEBUG] GameInstance+0x40 = %p\n", (void*)localplayer_ptr);
+        
+        if (localplayer_ptr > 0x10000 && localplayer_ptr < 0x7FFFFFFFFFFF) {
+            // Check if it has vtable (valid object)
+            uintptr_t vtable = memory::read<uintptr_t>(localplayer_ptr);
+            if (vtable > 0x10000) {
+                localplayer = (ulocalplayer*)localplayer_ptr;
+                printf("[DEBUG] Found localplayer via pointer method!\n");
+                printf("[DEBUG] localplayer: %p (vtable: %p)\n", localplayer, (void*)vtable);
+            }
         }
-        printf("\n");
         
-        // CHECK: Maybe GameInstance itself is wrong? Let's verify GameInstance
-        printf("[DEBUG] Verifying GameInstance structure...\n");
-        
-        // Try different approaches:
-        
-        // APPROACH 1: Maybe local_players is at UWorld, not GameInstance
-        printf("[DEBUG] Approach 1: Checking UWorld for localplayer...\n");
-        std::vector<uintptr_t> uworld_offsets = {0x100, 0x108, 0x110, 0x118, 0x120, 0x128, 0x130, 0x138};
-        for (uintptr_t offset : uworld_offsets) {
-            uintptr_t test_addr = uintptr_t(UWorldClass) + offset;
+        // METHOD 2: TArray approach (GameInstance->LocalPlayers as TArray)
+        if (!localplayer) {
+            printf("[DEBUG] Method 2: Reading as TArray...\n");
             try {
-                uintptr_t possible_localplayer = memory::read<uintptr_t>(test_addr);
-                if (possible_localplayer > 0x10000) {
-                    printf("[DEBUG] UWorld+0x%llX: %p\n", offset, (void*)possible_localplayer);
-                    
-                    // Check if it has local_controller at +0x38
-                    uintptr_t controller_check = memory::read<uintptr_t>(possible_localplayer + 0x38);
-                    if (controller_check > 0x10000) {
-                        localplayer = (ulocalplayer*)possible_localplayer;
-                        printf("[DEBUG] FOUND localplayer at UWorld+0x%llX!\n", offset);
+                tarray<ulocalplayer*> local_players_array = memory::read<tarray<ulocalplayer*>>(uintptr_t(gameinstance) + offsets::LocalPlayers);
+                printf("[DEBUG] TArray count=%d, data=%p\n", local_players_array.count, local_players_array.data);
+                
+                if (local_players_array.count > 0 && local_players_array.count <= 10 && local_players_array.data != 0) {
+                    ulocalplayer* test_player = memory::read<ulocalplayer*>((uintptr_t)local_players_array.data);
+                    if (test_player && (uintptr_t)test_player > 0x10000) {
+                        localplayer = test_player;
+                        printf("[DEBUG] Found localplayer via TArray method!\n");
                         printf("[DEBUG] localplayer: %p\n", localplayer);
-                        found = true;
-                        break;
                     }
                 }
             } catch (...) {
-                continue;
+                printf("[DEBUG] TArray read failed\n");
             }
         }
         
-        if (!found) {
-            // APPROACH 2: Maybe GameInstance offset 0x1D8 is wrong for current patch
-            printf("[DEBUG] Approach 2: Searching for GameInstance from UWorld...\n");
-            std::vector<uintptr_t> gi_offsets = {0x1A0, 0x1A8, 0x1B0, 0x1B8, 0x1C0, 0x1C8, 0x1D0, 0x1D8, 0x1E0, 0x1E8, 0x1F0};
-            ugameinstance* correct_gameinstance = nullptr;
-            
-            for (uintptr_t offset : gi_offsets) {
-                uintptr_t possible_gi = memory::read<uintptr_t>(uintptr_t(UWorldClass) + offset);
-                if (possible_gi > 0x10000) {
-                    printf("[DEBUG] Possible GameInstance at UWorld+0x%llX: %p\n", offset, (void*)possible_gi);
-                    
-                    // Test if this GameInstance has local_players at +0x40
-                    uintptr_t test_localplayer = memory::read<uintptr_t>(possible_gi + 0x40);
-                    if (test_localplayer > 0x10000) {
-                        printf("[DEBUG]   -> Has localplayer candidate at +0x40: %p\n", (void*)test_localplayer);
-                        
-                        // Also check tarray approach
-                        try {
-                            tarray<ulocalplayer*> test_array = memory::read<tarray<ulocalplayer*>>(possible_gi + 0x40);
-                            printf("[DEBUG]   -> tarray count=%d, data=%p\n", test_array.count, test_array.data);
-                            
-                            if (test_array.count > 0 && test_array.count <= 10) {
-                                correct_gameinstance = (ugameinstance*)possible_gi;
-                                printf("[DEBUG] Using GameInstance at offset 0x%llX\n", offset);
-                                gameinstance = correct_gameinstance;
-                                break;
-                            }
-                        } catch (...) {
-                            continue;
-                        }
-                    }
-                }
-            }
-            
-            if (correct_gameinstance) {
-                printf("[DEBUG] Found better GameInstance at %p\n", correct_gameinstance);
-                gameinstance = correct_gameinstance;
-                
-                // Now try to get localplayer from this GameInstance
-                // Try both direct pointer and tarray
-                uintptr_t localplayer_candidate = memory::read<uintptr_t>(uintptr_t(gameinstance) + 0x40);
-                if (localplayer_candidate > 0x10000) {
-                    localplayer = (ulocalplayer*)localplayer_candidate;
-                    printf("[DEBUG] Found localplayer at GameInstance+0x40: %p\n", localplayer);
-                    found = true;
-                }
-            }
-        }
-        
-        if (!found) {
-            // APPROACH 3: Bruteforce search around GameInstance for valid object
-            printf("[DEBUG] Approach 3: Bruteforce search around GameInstance...\n");
-            for (uintptr_t offset = 0x00; offset <= 0x200; offset += 8) {
-                uintptr_t test_addr = uintptr_t(gameinstance) + offset;
-                try {
-                    uintptr_t possible_ptr = memory::read<uintptr_t>(test_addr);
-                    if (possible_ptr > 0x10000 && possible_ptr < 0x7FFFFFFFFFFF) {
-                        // Check vtable
-                        uintptr_t vtable = memory::read<uintptr_t>(possible_ptr);
-                        if (vtable > 0x10000) {
-                            printf("[DEBUG] GameInstance+0x%llX -> object %p (vtable %p)\n", offset, (void*)possible_ptr, (void*)vtable);
-                            
-                            // Check if it looks like ulocalplayer (has viewport_client at +0x80)
-                            uintptr_t viewport_check = memory::read<uintptr_t>(possible_ptr + 0x80);
-                            if (viewport_check > 0x10000) {
-                                localplayer = (ulocalplayer*)possible_ptr;
-                                printf("[DEBUG] FOUND localplayer at GameInstance+0x%llX!\n", offset);
-                                printf("[DEBUG] localplayer: %p\n", localplayer);
-                                found = true;
-                                break;
-                            }
-                        }
-                    }
-                } catch (...) {
-                    continue;
-                }
-            }
-        }
-        
-        if (!found) {
-            printf("[DEBUG] ALL APPROACHES FAILED. Something is wrong with offsets.\n");
+        if (!localplayer) {
+            printf("[DEBUG] Failed to get localplayer. Offsets might be wrong.\n");
             printf("[DEBUG] GameInstance: %p\n", gameinstance);
             printf("[DEBUG] UWorldClass: %p\n", UWorldClass);
             printf("[DEBUG] Can't proceed without localplayer.\n");
