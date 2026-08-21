@@ -7846,7 +7846,7 @@ namespace hooks
         printf("[DEBUG] Trying UWorld+0x0040...\n");
         try {
             tarray<ulocalplayer*> test_array = memory::read<tarray<ulocalplayer*>>(uintptr_t(UWorldClass) + 0x0040);
-            if (test_array.data && test_array.data > 0x10000 && test_array.count > 0 && test_array.count <= 10) {
+            if (test_array.data && (uintptr_t)test_array.data > 0x10000 && test_array.count > 0 && test_array.count <= 10) {
                 localplayer = memory::read<ulocalplayer*>((uintptr_t)test_array.data);
                 if (localplayer && (uintptr_t)localplayer > 0x10000) {
                     printf("[DEBUG] Found localplayer at UWorld+0x0040!\n");
