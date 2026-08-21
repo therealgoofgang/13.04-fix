@@ -7893,7 +7893,7 @@ namespace hooks
                         if (test_player && (uintptr_t)test_player > 0x10000) {
                             localplayer = test_player;
                             found_offset = test_offset;
-                            printf("[DEBUG] FOUND LocalPlayers at UWorld+0x%llX\n", test_offset);
+                            printf("[DEBUG] FOUND LocalPlayers at UWorld+0x%llX\n", (unsigned long long)test_offset);
                             break;
                         }
                     }
@@ -7923,7 +7923,7 @@ namespace hooks
                     if (pc_array.data && pc_array.count > 0 && pc_array.count <= 20) {
                         printf("[DEBUG] Found array at UWorld+0x%llX, count=%llu\n", offset, (unsigned long long)pc_array.count);
                         // Get first element
-                        uintptr_t pc = memory::read<uintptr_t>(pc_array.data);
+                        uintptr_t pc = memory::read<uintptr_t>((uintptr_t)pc_array.data);
                         if (pc) {
                             printf("[DEBUG] First element: %p\n", (void*)pc);
                         }
