@@ -7887,21 +7887,36 @@ namespace hooks
                 // Maybe data field points directly to localplayer (not an array)
                 // Need to cast pointer to uintptr_t for comparison
                 uintptr_t data_as_uintptr = (uintptr_t)local_players_array.data;
+                printf("[DEBUG] data_as_uintptr = 0x%llX\n", data_as_uintptr);
+                
                 if (data_as_uintptr > 0x10000 && data_as_uintptr < 0x7FFFFFFFFFFF) {
                     // Check if it has vtable
+                    printf("[DEBUG] Checking vtable at 0x%llX...\n", data_as_uintptr);
                     uintptr_t vtable = memory::read<uintptr_t>(data_as_uintptr);
+                    printf("[DEBUG] vtable = %p\n", (void*)vtable);
+                    
                     if (vtable > 0x10000) {
                         localplayer = (ulocalplayer*)local_players_array.data;
                         printf("[DEBUG] Found localplayer via TArray.data method!\n");
                         printf("[DEBUG] localplayer: %p (vtable: %p)\n", localplayer, (void*)vtable);
+                    } else {
+                        printf("[DEBUG] vtable check failed (vtable=%p)\n", (void*)vtable);
                     }
                 }
             } catch (...) {
-                printf("[DEBUG] Method 3 failed\n");
+                printf("[DEBUG] Method 3 failed with exception\n");
             }
         }
         
         if (!localplayer) {
+            printf("[DEBUG] DEBUG: Let's examine GameInstance memory...\n");
+            printf("[DEBUG] GameInstance at %p\n", gameinstance);
+            printf("[DEBUG] First 64 bytes of GameInstance:\n");
+            for (int i = 0; i < 64; i += 8) {
+                uint64_t value = memory::read<uint64_t>(uintptr_t(gameinstance) + i);
+                printf("[DEBUG] GameInstance+0x%02X: 0x%016llX\n", i, value);
+            }
+            
             printf("[DEBUG] Failed to get localplayer. Offsets might be wrong.\n");
             printf("[DEBUG] GameInstance: %p\n", gameinstance);
             printf("[DEBUG] UWorldClass: %p\n", UWorldClass);
