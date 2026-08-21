@@ -51,13 +51,13 @@ namespace AntiAim {
 namespace offsets
 {
     // === CORE & ENGINE ===
-    constexpr uint64_t GWorld = 0xcf68db0;
+    constexpr uint64_t GWorld = 0xced3e90;  // Patch 13.04 correct offset
     constexpr uint64_t gworld = GWorld;
     constexpr uint64_t State = GWorld;
     constexpr uint64_t uworldstate = GWorld;
-    constexpr uint64_t GObjects = 0xcf4ec50;
+    constexpr uint64_t GObjects = 0xcf4fc50;  // Updated for patch 13.04
     constexpr uint64_t ObjectArray = GObjects;
-    constexpr uint64_t FNamePool = 0xd09e540;
+    constexpr uint64_t FNamePool = 0xd09f540;  // Updated for patch 13.04
     constexpr uint64_t fname_pool = FNamePool;
     constexpr uint64_t FNameState = 0xcf5f530;
     constexpr uint64_t TriggerVEH = 0x1ae68f6;
