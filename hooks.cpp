@@ -7885,9 +7885,11 @@ namespace hooks
                 printf("[DEBUG] TArray.data = %p\n", local_players_array.data);
                 
                 // Maybe data field points directly to localplayer (not an array)
-                if (local_players_array.data > 0x10000 && local_players_array.data < 0x7FFFFFFFFFFF) {
+                // Need to cast pointer to uintptr_t for comparison
+                uintptr_t data_as_uintptr = (uintptr_t)local_players_array.data;
+                if (data_as_uintptr > 0x10000 && data_as_uintptr < 0x7FFFFFFFFFFF) {
                     // Check if it has vtable
-                    uintptr_t vtable = memory::read<uintptr_t>(local_players_array.data);
+                    uintptr_t vtable = memory::read<uintptr_t>(data_as_uintptr);
                     if (vtable > 0x10000) {
                         localplayer = (ulocalplayer*)local_players_array.data;
                         printf("[DEBUG] Found localplayer via TArray.data method!\n");
@@ -7904,11 +7906,6 @@ namespace hooks
             printf("[DEBUG] GameInstance: %p\n", gameinstance);
             printf("[DEBUG] UWorldClass: %p\n", UWorldClass);
             printf("[DEBUG] Can't proceed without localplayer.\n");
-            return;
-        }
-        
-        if (!found || !localplayer) {
-            printf("[DEBUG] Failed to find localplayer. Can't proceed.\n");
             return;
         }
 
