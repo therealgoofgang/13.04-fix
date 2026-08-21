@@ -7803,13 +7803,8 @@ namespace hooks
         (initialize_spoofcall)((uint8_t*)memory::module_base);
         printf("[DEBUG] Spoofcall initialized!\n");
 
-        printf("[DEBUG] Calling variables.init_variables()...\n");
-        try {
-            variables.init_variables();
-            printf("[DEBUG] init_variables completed!\n");
-        } catch (...) {
-            printf("[DEBUG] WARNING: init_variables() failed! Continuing anyway...\n");
-        }
+        printf("[DEBUG] SKIPPING variables.init_variables() for testing...\n");
+        // variables.init_variables();
 
         printf("[DEBUG] Calling Config->Initialize()...\n");
         Config->Initialize();
