@@ -7906,11 +7906,28 @@ namespace hooks
             printf("[DEBUG] GameInstance: %p, UWorld: %p\n", gameinstance, UWorldClass);
             printf("[DEBUG] GameInstance+0x0040 raw: 0x%016llX (ENCRYPTED?)\n", 
                    memory::read<uint64_t>(uintptr_t(gameinstance) + 0x0040));
-            // Show more GameInstance memory for debugging
-            printf("[DEBUG] GameInstance+0x00: 0x%016llX\n", memory::read<uint64_t>(uintptr_t(gameinstance)));
-            printf("[DEBUG] GameInstance+0x08: 0x%016llX\n", memory::read<uint64_t>(uintptr_t(gameinstance) + 0x08));
-            printf("[DEBUG] GameInstance+0x10: 0x%016llX\n", memory::read<uint64_t>(uintptr_t(gameinstance) + 0x10));
-            return;
+            
+            // TRY READING AS POINTER (not TArray)
+            printf("[DEBUG] Trying GameInstance+0x0040 as direct pointer...\n");
+            uintptr_t possible_ptr = memory::read<uintptr_t>(uintptr_t(gameinstance) + 0x0040);
+            if (possible_ptr > 0x10000 && possible_ptr < 0x7FFFFFFFFFFF) {
+                printf("[DEBUG] Possible pointer: %p\n", (void*)possible_ptr);
+                // Try reading as LocalPlayer
+                ulocalplayer* test_player = memory::read<ulocalplayer*>(possible_ptr);
+                if (test_player && (uintptr_t)test_player > 0x10000) {
+                    localplayer = test_player;
+                    printf("[DEBUG] Found localplayer as direct pointer!\n");
+                    printf("[DEBUG] localplayer: %p\n", localplayer);
+                }
+            }
+            
+            if (!localplayer) {
+                // Show more GameInstance memory for debugging
+                printf("[DEBUG] GameInstance+0x00: 0x%016llX\n", memory::read<uint64_t>(uintptr_t(gameinstance)));
+                printf("[DEBUG] GameInstance+0x08: 0x%016llX\n", memory::read<uint64_t>(uintptr_t(gameinstance) + 0x08));
+                printf("[DEBUG] GameInstance+0x10: 0x%016llX\n", memory::read<uint64_t>(uintptr_t(gameinstance) + 0x10));
+                return;
+            }
         }
         
         printf("[DEBUG] Using LocalPlayers offset: 0x%llX\n", found_offset);
