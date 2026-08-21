@@ -7885,7 +7885,7 @@ namespace hooks
         if (!localplayer) {
             // Also try UWorld offsets
             printf("[DEBUG] Trying UWorld offsets...\n");
-            for (auto test_offset : {0x30, 0x38, 0x40, 0x48, 0x50, 0x58, 0x60}) {
+            for (auto test_offset : {0x30, 0x38, 0x40, 0x48, 0x50, 0x58, 0x60, 0x218, 0x220, 0x228}) {
                 try {
                     tarray<ulocalplayer*> test_array = memory::read<tarray<ulocalplayer*>>(uintptr_t(UWorldClass) + test_offset);
                     if (test_array.data && test_array.count > 0 && test_array.count <= 20) {
