@@ -7804,8 +7804,12 @@ namespace hooks
         printf("[DEBUG] Spoofcall initialized!\n");
 
         printf("[DEBUG] Calling variables.init_variables()...\n");
-        variables.init_variables();
-        printf("[DEBUG] init_variables completed!\n");
+        try {
+            variables.init_variables();
+            printf("[DEBUG] init_variables completed!\n");
+        } catch (...) {
+            printf("[DEBUG] WARNING: init_variables() failed! Continuing anyway...\n");
+        }
 
         printf("[DEBUG] Calling Config->Initialize()...\n");
         Config->Initialize();
