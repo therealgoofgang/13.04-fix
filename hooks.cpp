@@ -7907,6 +7907,11 @@ namespace hooks
             printf("[DEBUG] GameInstance+0x0040 raw: 0x%016llX (ENCRYPTED?)\n", 
                    memory::read<uint64_t>(uintptr_t(gameinstance) + 0x0040));
             
+            // QUICK DEBUG: Print GameInstance memory BEFORE scanning
+            printf("[DEBUG] GameInstance+0x38 (seed?): 0x%016llX\n", memory::read<uint64_t>(uintptr_t(gameinstance) + 0x38));
+            printf("[DEBUG] GameInstance+0x40 (encrypted): 0x%016llX\n", memory::read<uint64_t>(uintptr_t(gameinstance) + 0x40));
+            printf("[DEBUG] GameInstance+0x48: 0x%016llX\n", memory::read<uint64_t>(uintptr_t(gameinstance) + 0x48));
+            
             // SCAN GameInstance memory for LocalPlayer pointer pattern
             printf("[DEBUG] Scanning GameInstance memory for LocalPlayer (0x0-0x1000)...\n");
             for (uintptr_t offset = 0; offset < 0x1000; offset += 8) {
