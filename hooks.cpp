@@ -7912,24 +7912,51 @@ namespace hooks
             printf("[DEBUG] GameInstance+0x40 (encrypted): 0x%016llX\n", memory::read<uint64_t>(uintptr_t(gameinstance) + 0x40));
             printf("[DEBUG] GameInstance+0x48: 0x%016llX\n", memory::read<uint64_t>(uintptr_t(gameinstance) + 0x48));
             
-            // SCAN GameInstance memory for LocalPlayer pointer pattern
-            printf("[DEBUG] Scanning GameInstance memory for LocalPlayer (0x0-0x1000)...\n");
-            for (uintptr_t offset = 0; offset < 0x1000; offset += 8) {
+            // QUICK TEST common offsets instead of full scan
+            printf("[DEBUG] Quick testing key offsets...\n");
+            
+            // Try UWorld->PlayerController array offsets
+            uintptr_t uworld_offsets[] = {0x1E0, 0x1E8, 0x1F0, 0x1F8, 0x200, 0x208, 0x210, 0x218};
+            for (auto offset : uworld_offsets) {
                 try {
-                    uintptr_t test_value = memory::read<uintptr_t>(uintptr_t(gameinstance) + offset);
-                    if (test_value > 0x10000 && test_value < 0x7FFFFFFFFFFF) {
-                        // Check if points to something that looks like LocalPlayer
-                        ulocalplayer* test_player = memory::read<ulocalplayer*>(test_value);
-                        if (test_player && (uintptr_t)test_player > 0x10000) {
-                            // Quick check: read first few bytes
-                            uint64_t header = memory::read<uint64_t>(test_value);
-                            if (header != 0 && header != 0xFFFFFFFFFFFFFFFF) {
-                                localplayer = test_player;
-                                printf("[DEBUG] FOUND LocalPlayer candidate at GameInstance+0x%llX\n", offset);
-                                printf("[DEBUG] Pointer value: %p -> LocalPlayer: %p\n", (void*)test_value, localplayer);
-                                break;
-                            }
+                    tarray<uplayercontroller*> pc_array = memory::read<tarray<uplayercontroller*>>(uintptr_t(UWorldClass) + offset);
+                    if (pc_array.data && pc_array.count > 0 && pc_array.count <= 20) {
+                        printf("[DEBUG] Found PlayerController array at UWorld+0x%llX, count=%d\n", offset, pc_array.count);
+                        // Get first PlayerController
+                        uplayercontroller* pc = memory::read<uplayercontroller*>(pc_array.data);
+                        if (pc) {
+                            printf("[DEBUG] PlayerController: %p\n", pc);
+                            // Try to get LocalPlayer from PlayerController
+                            // Actually LocalPlayer -> PlayerController, not reverse
                         }
+                    }
+                } catch (...) {}
+            }
+            
+            // Try GameInstance offsets near 0x40 (encrypted area)
+            uintptr_t gi_offsets[] = {0x30, 0x38, 0x40, 0x48, 0x50, 0x58, 0x60, 0x68, 0x70, 0x78, 0x80};
+            for (auto offset : gi_offsets) {
+                try {
+                    uintptr_t val = memory::read<uintptr_t>(uintptr_t(gameinstance) + offset);
+                    printf("[DEBUG] GameInstance+0x%llX = 0x%016llX\n", offset, val);
+                } catch (...) {}
+            }
+            
+            // LAST RESORT: Try XOR decryption of 0x40 value with seed
+            printf("[DEBUG] Trying simple XOR decryption...\n");
+            uint64_t encrypted = 0x110F086E6EF20510;
+            uint64_t seed = 0x0F0B8B48FEEB3134;
+            uint64_t decrypted = encrypted ^ seed;
+            printf("[DEBUG] encrypted ^ seed = 0x%016llX\n", decrypted);
+            
+            // Try as pointer
+            if (decrypted > 0x10000 && decrypted < 0x7FFFFFFFFFFF) {
+                printf("[DEBUG] Testing as pointer: %p\n", (void*)decrypted);
+                try {
+                    ulocalplayer* test = memory::read<ulocalplayer*>(decrypted);
+                    if (test && (uintptr_t)test > 0x10000) {
+                        localplayer = test;
+                        printf("[DEBUG] FOUND LocalPlayer via XOR decryption!\n");
                     }
                 } catch (...) {}
             }
