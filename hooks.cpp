@@ -7834,93 +7834,38 @@ namespace hooks
 
         printf("[DEBUG] Getting LocalPlayer...\n");
         
-        // SIMPLE APPROACH: Use the offsets that worked before
-        // If old version worked, then local_players offset 0x40 should be correct
-        // But reading method might be different
+        printf("[DEBUG] Getting LocalPlayer...\n");
         
+        // SIMPLE DIRECT APPROACH: GameInstance+0x0040 as TArray
         ulocalplayer* localplayer = nullptr;
         
-        // Try BOTH methods that might have worked before:
+        printf("[DEBUG] Reading LocalPlayers at GameInstance+0x0040...\n");
+        tarray<ulocalplayer*> local_players_array = memory::read<tarray<ulocalplayer*>>(uintptr_t(gameinstance) + 0x0040);
+        printf("[DEBUG] TArray count=%d, data=%p\n", local_players_array.count, local_players_array.data);
         
-        // METHOD 1: Direct pointer (GameInstance->LocalPlayers as pointer)
-        printf("[DEBUG] Method 1: Reading as pointer...\n");
-        uintptr_t localplayer_ptr = memory::read<uintptr_t>(uintptr_t(gameinstance) + offsets::LocalPlayers);
-        printf("[DEBUG] GameInstance+0x40 = %p\n", (void*)localplayer_ptr);
-        
-        if (localplayer_ptr > 0x10000 && localplayer_ptr < 0x7FFFFFFFFFFF) {
-            // Check if it has vtable (valid object)
-            uintptr_t vtable = memory::read<uintptr_t>(localplayer_ptr);
-            if (vtable > 0x10000) {
-                localplayer = (ulocalplayer*)localplayer_ptr;
-                printf("[DEBUG] Found localplayer via pointer method!\n");
-                printf("[DEBUG] localplayer: %p (vtable: %p)\n", localplayer, (void*)vtable);
+        if (local_players_array.count > 0 && local_players_array.count <= 10 && local_players_array.data != 0) {
+            // Get first localplayer from array
+            localplayer = memory::read<ulocalplayer*>((uintptr_t)local_players_array.data);
+            if (localplayer && (uintptr_t)localplayer > 0x10000) {
+                printf("[DEBUG] Found localplayer!\n");
+                printf("[DEBUG] localplayer: %p\n", localplayer);
+            } else {
+                printf("[DEBUG] Failed to read first element from TArray\n");
+                return;
             }
-        }
-        
-        // METHOD 2: TArray approach (GameInstance->LocalPlayers as TArray)
-        if (!localplayer) {
-            printf("[DEBUG] Method 2: Reading as TArray...\n");
-            try {
-                tarray<ulocalplayer*> local_players_array = memory::read<tarray<ulocalplayer*>>(uintptr_t(gameinstance) + offsets::LocalPlayers);
-                printf("[DEBUG] TArray count=%d, data=%p\n", local_players_array.count, local_players_array.data);
-                
-                if (local_players_array.count > 0 && local_players_array.count <= 10 && local_players_array.data != 0) {
-                    ulocalplayer* test_player = memory::read<ulocalplayer*>((uintptr_t)local_players_array.data);
-                    if (test_player && (uintptr_t)test_player > 0x10000) {
-                        localplayer = test_player;
-                        printf("[DEBUG] Found localplayer via TArray method!\n");
-                        printf("[DEBUG] localplayer: %p\n", localplayer);
-                    }
-                }
-            } catch (...) {
-                printf("[DEBUG] TArray read failed\n");
-            }
-        }
-        
-        // METHOD 3: What if the TArray data IS the localplayer itself?
-        if (!localplayer) {
-            printf("[DEBUG] Method 3: Checking if TArray.data is localplayer...\n");
-            try {
-                tarray<ulocalplayer*> local_players_array = memory::read<tarray<ulocalplayer*>>(uintptr_t(gameinstance) + offsets::LocalPlayers);
-                printf("[DEBUG] TArray.data = %p\n", local_players_array.data);
-                
-                // Maybe data field points directly to localplayer (not an array)
-                // Need to cast pointer to uintptr_t for comparison
-                uintptr_t data_as_uintptr = (uintptr_t)local_players_array.data;
-                printf("[DEBUG] data_as_uintptr = 0x%llX\n", data_as_uintptr);
-                
-                if (data_as_uintptr > 0x10000 && data_as_uintptr < 0x7FFFFFFFFFFF) {
-                    // Check if it has vtable
-                    printf("[DEBUG] Checking vtable at 0x%llX...\n", data_as_uintptr);
-                    uintptr_t vtable = memory::read<uintptr_t>(data_as_uintptr);
-                    printf("[DEBUG] vtable = %p\n", (void*)vtable);
-                    
-                    if (vtable > 0x10000) {
-                        localplayer = (ulocalplayer*)local_players_array.data;
-                        printf("[DEBUG] Found localplayer via TArray.data method!\n");
-                        printf("[DEBUG] localplayer: %p (vtable: %p)\n", localplayer, (void*)vtable);
-                    } else {
-                        printf("[DEBUG] vtable check failed (vtable=%p)\n", (void*)vtable);
-                    }
-                }
-            } catch (...) {
-                printf("[DEBUG] Method 3 failed with exception\n");
-            }
-        }
-        
-        if (!localplayer) {
-            printf("[DEBUG] DEBUG: Let's examine GameInstance memory...\n");
-            printf("[DEBUG] GameInstance at %p\n", gameinstance);
-            printf("[DEBUG] First 64 bytes of GameInstance:\n");
-            for (int i = 0; i < 64; i += 8) {
-                uint64_t value = memory::read<uint64_t>(uintptr_t(gameinstance) + i);
-                printf("[DEBUG] GameInstance+0x%02X: 0x%016llX\n", i, value);
-            }
+        } else {
+            printf("[DEBUG] Invalid TArray at GameInstance+0x0040\n");
+            printf("[DEBUG] This suggests either:\n");
+            printf("[DEBUG] 1. GameInstance offset 0x1D8 is wrong\n");
+            printf("[DEBUG] 2. LocalPlayers offset 0x0040 is wrong\n");
+            printf("[DEBUG] 3. GameInstance pointer is invalid\n");
             
-            printf("[DEBUG] Failed to get localplayer. Offsets might be wrong.\n");
+            // Debug: Show what's actually at GameInstance+0x0040
+            printf("[DEBUG] Raw value at GameInstance+0x0040: 0x%016llX\n", 
+                   memory::read<uint64_t>(uintptr_t(gameinstance) + 0x0040));
             printf("[DEBUG] GameInstance: %p\n", gameinstance);
             printf("[DEBUG] UWorldClass: %p\n", UWorldClass);
-            printf("[DEBUG] Can't proceed without localplayer.\n");
+            
             return;
         }
 

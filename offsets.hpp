@@ -60,13 +60,13 @@ namespace offsets
     constexpr uint64_t FNamePool = 0xd09f540;  // Updated for patch 13.04
     constexpr uint64_t fname_pool = FNamePool;
     constexpr uint64_t FNameState = 0xcf5f530;
-    constexpr uint64_t TriggerVEH = 0x1ae68f6;
-    constexpr uint64_t process_event = 0x1ebf9e0;
-    constexpr uint64_t bone_matrix = 0x4399a10;
-    constexpr uint64_t fmemory_malloc = 0x1ab00c0;
-    constexpr uint64_t static_find_object = 0x1eec7b0;
-    constexpr uint64_t static_load_object = 0x1eeff10;
-    constexpr uint64_t set_ares_outline_mode = 0x432f1e0;
+    constexpr uint64_t TriggerVEH = 0x1f89b6;        // From your actual: 0x1F89B6
+    constexpr uint64_t process_event = 0x25af12e;     // From your actual: 0x25AF12E (calculate offset)
+    constexpr uint64_t bone_matrix = 0x4a8915e;       // From your actual: 0x4A8915E
+    constexpr uint64_t fmemory_malloc = 0x219f80e;    // From your actual: 0x219F80E
+    constexpr uint64_t static_find_object = 0x25dbefe; // From your actual: 0x25DBEFE
+    constexpr uint64_t static_load_object = 0x25df65e; // From your actual: 0x25DF65E
+    constexpr uint64_t set_ares_outline_mode = 0x4a1e92e; // From your actual: 0x4A1E92E
     constexpr uint64_t FPakPlatformFile = 0xcf05aa8;
     constexpr uint64_t SigningDelegate = 0xd2ab2c8;
 
@@ -229,12 +229,12 @@ namespace offsets
 
     constexpr uint64_t viewport_gameinstance = 0x88;
 
-    constexpr uint64_t get_spread_values = 0x6A33DB0;
-    constexpr uint64_t get_spread_angles = 0x766D110;
-    constexpr uint64_t to_vector_and_normalize = 0x1B85190;
-    constexpr uint64_t to_angle_and_normalize = 0x1B7FC80;
+    constexpr uint64_t get_spread_values = 0x71a2f4e;      // From your actual: 0x71A2F4E
+    constexpr uint64_t get_spread_angles = 0x7ddb0ae;      // From your actual: 0x7DDB0AE
+    constexpr uint64_t to_vector_and_normalize = 0x22981be; // From your actual: 0x22981BE
+    constexpr uint64_t to_angle_and_normalize = 0x2292cae;  // From your actual: 0x2292CAE
 
-    constexpr uint64_t get_firing_location_direction = 0x71C84C0;
+    constexpr uint64_t get_firing_location_direction = 0x793236e; // From your actual: 0x793236E
 
     constexpr uint64_t seed_data = 0x4A0;
     constexpr uint64_t seed_dataadd = 0xD8;
