@@ -7877,6 +7877,28 @@ namespace hooks
             }
         }
         
+        // METHOD 3: What if the TArray data IS the localplayer itself?
+        if (!localplayer) {
+            printf("[DEBUG] Method 3: Checking if TArray.data is localplayer...\n");
+            try {
+                tarray<ulocalplayer*> local_players_array = memory::read<tarray<ulocalplayer*>>(uintptr_t(gameinstance) + offsets::LocalPlayers);
+                printf("[DEBUG] TArray.data = %p\n", local_players_array.data);
+                
+                // Maybe data field points directly to localplayer (not an array)
+                if (local_players_array.data > 0x10000 && local_players_array.data < 0x7FFFFFFFFFFF) {
+                    // Check if it has vtable
+                    uintptr_t vtable = memory::read<uintptr_t>(local_players_array.data);
+                    if (vtable > 0x10000) {
+                        localplayer = (ulocalplayer*)local_players_array.data;
+                        printf("[DEBUG] Found localplayer via TArray.data method!\n");
+                        printf("[DEBUG] localplayer: %p (vtable: %p)\n", localplayer, (void*)vtable);
+                    }
+                }
+            } catch (...) {
+                printf("[DEBUG] Method 3 failed\n");
+            }
+        }
+        
         if (!localplayer) {
             printf("[DEBUG] Failed to get localplayer. Offsets might be wrong.\n");
             printf("[DEBUG] GameInstance: %p\n", gameinstance);
