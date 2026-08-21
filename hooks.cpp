@@ -7840,18 +7840,27 @@ namespace hooks
         tarray<ulocalplayer*> local_players_array;
         bool found = false;
         
-        // Common UE offsets to try (in bytes)
+        // Try common UE offsets (expanded range)
         std::vector<uintptr_t> offsets_to_try = {
-            0x30, 0x38, 0x40, 0x48, 0x50, 0x58, 0x60, 0x68, 0x70, 0x78,
-            0x80, 0x88, 0x90, 0x98, 0xA0, 0xA8, 0xB0, 0xB8, 0xC0
+            0x20, 0x28, 0x30, 0x38, 0x40, 0x48, 0x50, 0x58, 0x60, 0x68,
+            0x70, 0x78, 0x80, 0x88, 0x90, 0x98, 0xA0, 0xA8, 0xB0, 0xB8,
+            0xC0, 0xC8, 0xD0, 0xD8, 0xE0, 0xE8, 0xF0, 0xF8, 0x100, 0x108,
+            0x110, 0x118, 0x120, 0x128, 0x130, 0x138, 0x140, 0x148, 0x150,
+            0x158, 0x160, 0x168, 0x170, 0x178, 0x180, 0x188, 0x190, 0x198,
+            0x1A0, 0x1A8, 0x1B0, 0x1B8, 0x1C0, 0x1C8, 0x1D0, 0x1D8, 0x1E0,
+            0x1E8, 0x1F0, 0x1F8, 0x200
         };
         
+        printf("[DEBUG] Scanning for local_players array...\n");
         for (uintptr_t offset : offsets_to_try) {
             uintptr_t test_addr = uintptr_t(gameinstance) + offset;
             
             try {
                 // Try reading as inline tarray
                 tarray<ulocalplayer*> test_array = memory::read<tarray<ulocalplayer*>>(test_addr);
+                
+                // Debug output
+                printf("[DEBUG] Offset 0x%llX: count=%d, data=%p\n", offset, test_array.count, test_array.data);
                 
                 // Check if this looks like a valid tarray
                 if (test_array.count >= 0 && test_array.count <= 10 && test_array.data != 0) {
@@ -7869,6 +7878,7 @@ namespace hooks
                 }
             } catch (...) {
                 // Skip this offset if read fails
+                printf("[DEBUG] Offset 0x%llX: READ FAILED\n", offset);
                 continue;
             }
         }
@@ -7880,22 +7890,41 @@ namespace hooks
             }
             printf("\n");
             
-            // Try one more thing: maybe local_players is a pointer at 0x40, and we need to read it differently
-            printf("[DEBUG] Trying pointer approach at 0x40...\n");
-            uintptr_t possible_ptr = memory::read<uintptr_t>(uintptr_t(gameinstance) + 0x40);
-            if (possible_ptr > 0x10000) {
-                try {
-                    local_players_array = memory::read<tarray<ulocalplayer*>>(possible_ptr);
-                    if (local_players_array.count > 0 && local_players_array.data != 0) {
-                        localplayer = memory::read<ulocalplayer*>((uintptr_t)local_players_array.data);
-                        if (localplayer) {
-                            printf("[DEBUG] Found via pointer! count: %d, localplayer: %p\n", local_players_array.count, localplayer);
-                            found = true;
+            // Try alternative approaches
+            printf("[DEBUG] Trying alternative approaches...\n");
+            
+            // Approach 1: Direct call to function (if we have vtable)
+            printf("[DEBUG] Approach 1: Trying direct function call...\n");
+            // Not available
+            
+            // Approach 2: Try GameInstance->LocalPlayers as a pointer chain
+            printf("[DEBUG] Approach 2: Trying pointer chain...\n");
+            std::vector<uintptr_t> pointer_offsets = {0x20, 0x28, 0x30, 0x38, 0x40, 0x48, 0x50, 0x58, 0x60};
+            for (uintptr_t ptr_offset : pointer_offsets) {
+                uintptr_t possible_ptr = memory::read<uintptr_t>(uintptr_t(gameinstance) + ptr_offset);
+                printf("[DEBUG] Offset 0x%llX: ptr=%p\n", ptr_offset, (void*)possible_ptr);
+                
+                if (possible_ptr > 0x10000 && possible_ptr < 0x7FFFFFFFFFFF) {
+                    try {
+                        tarray<ulocalplayer*> test_array = memory::read<tarray<ulocalplayer*>>(possible_ptr);
+                        printf("[DEBUG]   -> test_array count=%d, data=%p\n", test_array.count, test_array.data);
+                        
+                        if (test_array.count > 0 && test_array.count <= 10 && test_array.data != 0) {
+                            ulocalplayer* test_player = memory::read<ulocalplayer*>((uintptr_t)test_array.data);
+                            if (test_player) {
+                                local_players_array = test_array;
+                                localplayer = test_player;
+                                printf("[DEBUG] Found via pointer chain! offset=0x%llX, count=%d, localplayer=%p\n", 
+                                       ptr_offset, local_players_array.count, localplayer);
+                                found = true;
+                                break;
+                            }
                         }
+                    } catch (...) {
+                        printf("[DEBUG]   -> READ FAILED\n");
                     }
-                } catch (...) {
-                    // Failed
                 }
+                if (found) break;
             }
         }
         
