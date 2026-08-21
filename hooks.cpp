@@ -7836,36 +7836,42 @@ namespace hooks
         
         printf("[DEBUG] Getting LocalPlayer...\n");
         
+        // SAFETY CHECK: Verify GameInstance pointer is valid
+        if (!gameinstance || (uintptr_t)gameinstance < 0x10000) {
+            printf("[DEBUG] ERROR: Invalid GameInstance pointer!\n");
+            return;
+        }
+        
         // SIMPLE DIRECT APPROACH: GameInstance+0x0040 as TArray
         ulocalplayer* localplayer = nullptr;
         
         printf("[DEBUG] Reading LocalPlayers at GameInstance+0x0040...\n");
-        tarray<ulocalplayer*> local_players_array = memory::read<tarray<ulocalplayer*>>(uintptr_t(gameinstance) + 0x0040);
-        printf("[DEBUG] TArray count=%d, data=%p\n", local_players_array.count, local_players_array.data);
         
-        if (local_players_array.count > 0 && local_players_array.count <= 10 && local_players_array.data != 0) {
-            // Get first localplayer from array
-            localplayer = memory::read<ulocalplayer*>((uintptr_t)local_players_array.data);
-            if (localplayer && (uintptr_t)localplayer > 0x10000) {
-                printf("[DEBUG] Found localplayer!\n");
-                printf("[DEBUG] localplayer: %p\n", localplayer);
+        // Try-catch to prevent crashes
+        try {
+            tarray<ulocalplayer*> local_players_array = memory::read<tarray<ulocalplayer*>>(uintptr_t(gameinstance) + 0x0040);
+            printf("[DEBUG] TArray count=%d, data=%p\n", local_players_array.count, local_players_array.data);
+            
+            if (local_players_array.count > 0 && local_players_array.count <= 10 && local_players_array.data != 0) {
+                // Get first localplayer from array
+                localplayer = memory::read<ulocalplayer*>((uintptr_t)local_players_array.data);
+                if (localplayer && (uintptr_t)localplayer > 0x10000) {
+                    printf("[DEBUG] Found localplayer!\n");
+                    printf("[DEBUG] localplayer: %p\n", localplayer);
+                } else {
+                    printf("[DEBUG] Failed to read first element from TArray\n");
+                    return;
+                }
             } else {
-                printf("[DEBUG] Failed to read first element from TArray\n");
+                printf("[DEBUG] Invalid TArray at GameInstance+0x0040\n");
+                printf("[DEBUG] Raw value at GameInstance+0x0040: 0x%016llX\n", 
+                       memory::read<uint64_t>(uintptr_t(gameinstance) + 0x0040));
+                printf("[DEBUG] GameInstance: %p\n", gameinstance);
                 return;
             }
-        } else {
-            printf("[DEBUG] Invalid TArray at GameInstance+0x0040\n");
-            printf("[DEBUG] This suggests either:\n");
-            printf("[DEBUG] 1. GameInstance offset 0x1D8 is wrong\n");
-            printf("[DEBUG] 2. LocalPlayers offset 0x0040 is wrong\n");
-            printf("[DEBUG] 3. GameInstance pointer is invalid\n");
-            
-            // Debug: Show what's actually at GameInstance+0x0040
-            printf("[DEBUG] Raw value at GameInstance+0x0040: 0x%016llX\n", 
-                   memory::read<uint64_t>(uintptr_t(gameinstance) + 0x0040));
-            printf("[DEBUG] GameInstance: %p\n", gameinstance);
-            printf("[DEBUG] UWorldClass: %p\n", UWorldClass);
-            
+        } catch (...) {
+            printf("[DEBUG] CRASH PREVENTED: Memory read failed at GameInstance+0x0040\n");
+            printf("[DEBUG] GameInstance pointer likely invalid\n");
             return;
         }
 
