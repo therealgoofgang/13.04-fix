@@ -66,7 +66,7 @@ namespace offsets
     constexpr uint64_t bone_matrix = 0x433dc40;     // OLD offset
     constexpr uint64_t fmemory_malloc = 0x1a8c8e0;  // OLD offset
     constexpr uint64_t static_find_object = 0x1ea5f30; // OLD offset
-    constexpr uint64_t static_load_object = 0x1ea9690; // OLD offset (NOTE: TYPO 'laod' in old file!)
+    constexpr uint64_t static_load_object = 0x1ea9690; // OLD offset (matches old file despite typo)
     constexpr uint64_t set_ares_outline_mode = 0x42d4860; // OLD offset
     constexpr uint64_t FPakPlatformFile = 0xcf05aa8;
     constexpr uint64_t SigningDelegate = 0xd2ab2c8;
