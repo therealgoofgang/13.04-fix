@@ -7861,7 +7861,7 @@ namespace hooks
             printf("[DEBUG] Trying GameInstance+0x0038...\n");
             try {
                 tarray<ulocalplayer*> test_array = memory::read<tarray<ulocalplayer*>>(uintptr_t(gameinstance) + 0x0038);
-                if (test_array.data && test_array.data > 0x10000 && test_array.count > 0 && test_array.count <= 10) {
+                if (test_array.data && (uintptr_t)test_array.data > 0x10000 && test_array.count > 0 && test_array.count <= 10) {
                     localplayer = memory::read<ulocalplayer*>((uintptr_t)test_array.data);
                     if (localplayer && (uintptr_t)localplayer > 0x10000) {
                         printf("[DEBUG] Found localplayer at GameInstance+0x0038!\n");
@@ -7875,7 +7875,7 @@ namespace hooks
             printf("[DEBUG] Trying GameInstance+0x0030...\n");
             try {
                 tarray<ulocalplayer*> test_array = memory::read<tarray<ulocalplayer*>>(uintptr_t(gameinstance) + 0x0030);
-                if (test_array.data && test_array.data > 0x10000 && test_array.count > 0 && test_array.count <= 10) {
+                if (test_array.data && (uintptr_t)test_array.data > 0x10000 && test_array.count > 0 && test_array.count <= 10) {
                     localplayer = memory::read<ulocalplayer*>((uintptr_t)test_array.data);
                     if (localplayer && (uintptr_t)localplayer > 0x10000) {
                         printf("[DEBUG] Found localplayer at GameInstance+0x0030!\n");
