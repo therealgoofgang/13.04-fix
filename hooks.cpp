@@ -7833,15 +7833,13 @@ namespace hooks
 
         printf("[DEBUG] Getting LocalPlayer...\n");
         
-        printf("[DEBUG] Getting LocalPlayer...\n");
-        
         // SAFETY CHECK: Verify GameInstance pointer is valid
         if (!gameinstance || (uintptr_t)gameinstance < 0x10000) {
             printf("[DEBUG] ERROR: Invalid GameInstance pointer!\n");
             return;
         }
         
-        // SIMPLE DIRECT APPROACH: GameInstance+0x0040 as TArray
+        // USE 0x0040 ONLY (as instructed)
         ulocalplayer* localplayer = nullptr;
         
         printf("[DEBUG] Reading LocalPlayers at GameInstance+0x0040...\n");
