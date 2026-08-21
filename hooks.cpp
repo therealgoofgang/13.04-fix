@@ -7839,58 +7839,81 @@ namespace hooks
             return;
         }
         
-        // TRY DIFFERENT OFFSETS for LocalPlayers
+        // SEARCH MORE OFFSETS for LocalPlayers (encrypted might need different offset)
         ulocalplayer* localplayer = nullptr;
+        uintptr_t found_offset = 0;
         
-        // Try UWorld+0x0040 (maybe LocalPlayers directly in UWorld)
-        printf("[DEBUG] Trying UWorld+0x0040...\n");
-        try {
-            tarray<ulocalplayer*> test_array = memory::read<tarray<ulocalplayer*>>(uintptr_t(UWorldClass) + 0x0040);
-            if (test_array.data && (uintptr_t)test_array.data > 0x10000 && test_array.count > 0 && test_array.count <= 10) {
-                localplayer = memory::read<ulocalplayer*>((uintptr_t)test_array.data);
-                if (localplayer && (uintptr_t)localplayer > 0x10000) {
-                    printf("[DEBUG] Found localplayer at UWorld+0x0040!\n");
-                    printf("[DEBUG] TArray data: %p, count: %d\n", test_array.data, test_array.count);
-                    printf("[DEBUG] localplayer: %p\n", localplayer);
+        // Many possible offsets to try
+        uintptr_t offsets_to_try[] = {
+            // Common UE4 offsets
+            0x30, 0x38, 0x40, 0x48, 0x50, 0x58, 0x60, 0x68, 0x70, 0x78,
+            0x80, 0x88, 0x90, 0x98, 0xA0, 0xA8, 0xB0, 0xB8, 0xC0,
+            // Near OwningGameInstance (0x1D8)
+            0x1D0, 0x1D8, 0x1E0, 0x1E8, 0x1F0, 0x1F8,
+            0x200, 0x208, 0x210, 0x218,
+            // Small offsets
+            0x20, 0x28, 0x18, 0x10, 0x08, 0x00,
+            // Common array locations
+            0x100, 0x108, 0x110, 0x118,
+            0x150, 0x158, 0x160, 0x168
+        };
+        
+        printf("[DEBUG] Searching %d offsets for LocalPlayers...\n", sizeof(offsets_to_try)/sizeof(offsets_to_try[0]));
+        
+        for (auto test_offset : offsets_to_try) {
+            try {
+                tarray<ulocalplayer*> test_array = memory::read<tarray<ulocalplayer*>>(uintptr_t(gameinstance) + test_offset);
+                
+                // Check if array looks valid (allow encrypted pointers too)
+                if (test_array.data && test_array.count > 0 && test_array.count <= 20) {
+                    // Try to read first element
+                    ulocalplayer* test_player = memory::read<ulocalplayer*>((uintptr_t)test_array.data);
+                    if (test_player && (uintptr_t)test_player > 0x10000 && (uintptr_t)test_player < 0x7FFFFFFFFFFF) {
+                        localplayer = test_player;
+                        found_offset = test_offset;
+                        printf("[DEBUG] FOUND LocalPlayers offset: 0x%llX\n", test_offset);
+                        printf("[DEBUG] TArray data: %p, count: %d\n", test_array.data, test_array.count);
+                        printf("[DEBUG] First player: %p\n", test_player);
+                        break;
+                    }
                 }
+            } catch (...) {
+                // Skip bad offsets
             }
-        } catch (...) {}
-        
-        if (!localplayer) {
-            // Try GameInstance+0x0038
-            printf("[DEBUG] Trying GameInstance+0x0038...\n");
-            try {
-                tarray<ulocalplayer*> test_array = memory::read<tarray<ulocalplayer*>>(uintptr_t(gameinstance) + 0x0038);
-                if (test_array.data && (uintptr_t)test_array.data > 0x10000 && test_array.count > 0 && test_array.count <= 10) {
-                    localplayer = memory::read<ulocalplayer*>((uintptr_t)test_array.data);
-                    if (localplayer && (uintptr_t)localplayer > 0x10000) {
-                        printf("[DEBUG] Found localplayer at GameInstance+0x0038!\n");
-                    }
-                }
-            } catch (...) {}
         }
         
         if (!localplayer) {
-            // Try GameInstance+0x0030
-            printf("[DEBUG] Trying GameInstance+0x0030...\n");
-            try {
-                tarray<ulocalplayer*> test_array = memory::read<tarray<ulocalplayer*>>(uintptr_t(gameinstance) + 0x0030);
-                if (test_array.data && (uintptr_t)test_array.data > 0x10000 && test_array.count > 0 && test_array.count <= 10) {
-                    localplayer = memory::read<ulocalplayer*>((uintptr_t)test_array.data);
-                    if (localplayer && (uintptr_t)localplayer > 0x10000) {
-                        printf("[DEBUG] Found localplayer at GameInstance+0x0030!\n");
+            // Also try UWorld offsets
+            printf("[DEBUG] Trying UWorld offsets...\n");
+            for (auto test_offset : {0x30, 0x38, 0x40, 0x48, 0x50, 0x58, 0x60}) {
+                try {
+                    tarray<ulocalplayer*> test_array = memory::read<tarray<ulocalplayer*>>(uintptr_t(UWorldClass) + test_offset);
+                    if (test_array.data && test_array.count > 0 && test_array.count <= 20) {
+                        ulocalplayer* test_player = memory::read<ulocalplayer*>((uintptr_t)test_array.data);
+                        if (test_player && (uintptr_t)test_player > 0x10000) {
+                            localplayer = test_player;
+                            found_offset = test_offset;
+                            printf("[DEBUG] FOUND LocalPlayers at UWorld+0x%llX\n", test_offset);
+                            break;
+                        }
                     }
-                }
-            } catch (...) {}
+                } catch (...) {}
+            }
         }
         
         if (!localplayer) {
-            printf("[DEBUG] FAILED to find LocalPlayers! Tried offsets: 0x0040, 0x0038, 0x0030\n");
+            printf("[DEBUG] FAILED to find LocalPlayers! Tried many offsets.\n");
             printf("[DEBUG] GameInstance: %p, UWorld: %p\n", gameinstance, UWorldClass);
-            printf("[DEBUG] GameInstance+0x0040 raw: 0x%016llX\n", 
+            printf("[DEBUG] GameInstance+0x0040 raw: 0x%016llX (ENCRYPTED?)\n", 
                    memory::read<uint64_t>(uintptr_t(gameinstance) + 0x0040));
+            // Show more GameInstance memory for debugging
+            printf("[DEBUG] GameInstance+0x00: 0x%016llX\n", memory::read<uint64_t>(uintptr_t(gameinstance)));
+            printf("[DEBUG] GameInstance+0x08: 0x%016llX\n", memory::read<uint64_t>(uintptr_t(gameinstance) + 0x08));
+            printf("[DEBUG] GameInstance+0x10: 0x%016llX\n", memory::read<uint64_t>(uintptr_t(gameinstance) + 0x10));
             return;
         }
+        
+        printf("[DEBUG] Using LocalPlayers offset: 0x%llX\n", found_offset);
 
 
         printf("[DEBUG] Getting ViewportClient... offset: 0x%llX\n", offsets::viewport_client);
