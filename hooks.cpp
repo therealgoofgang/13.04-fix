@@ -7839,36 +7839,56 @@ namespace hooks
             return;
         }
         
-        // USE 0x0040 ONLY (as instructed)
+        // TRY DIFFERENT OFFSETS for LocalPlayers
         ulocalplayer* localplayer = nullptr;
         
-        printf("[DEBUG] Reading LocalPlayers at GameInstance+0x0040...\n");
-        
-        // Try-catch to prevent crashes
+        // Try UWorld+0x0040 (maybe LocalPlayers directly in UWorld)
+        printf("[DEBUG] Trying UWorld+0x0040...\n");
         try {
-            tarray<ulocalplayer*> local_players_array = memory::read<tarray<ulocalplayer*>>(uintptr_t(gameinstance) + 0x0040);
-            printf("[DEBUG] TArray count=%d, data=%p\n", local_players_array.count, local_players_array.data);
-            
-            if (local_players_array.count > 0 && local_players_array.count <= 10 && local_players_array.data != 0) {
-                // Get first localplayer from array
-                localplayer = memory::read<ulocalplayer*>((uintptr_t)local_players_array.data);
+            tarray<ulocalplayer*> test_array = memory::read<tarray<ulocalplayer*>>(uintptr_t(UWorldClass) + 0x0040);
+            if (test_array.data && test_array.data > 0x10000 && test_array.count > 0 && test_array.count <= 10) {
+                localplayer = memory::read<ulocalplayer*>((uintptr_t)test_array.data);
                 if (localplayer && (uintptr_t)localplayer > 0x10000) {
-                    printf("[DEBUG] Found localplayer!\n");
+                    printf("[DEBUG] Found localplayer at UWorld+0x0040!\n");
+                    printf("[DEBUG] TArray data: %p, count: %d\n", test_array.data, test_array.count);
                     printf("[DEBUG] localplayer: %p\n", localplayer);
-                } else {
-                    printf("[DEBUG] Failed to read first element from TArray\n");
-                    return;
                 }
-            } else {
-                printf("[DEBUG] Invalid TArray at GameInstance+0x0040\n");
-                printf("[DEBUG] Raw value at GameInstance+0x0040: 0x%016llX\n", 
-                       memory::read<uint64_t>(uintptr_t(gameinstance) + 0x0040));
-                printf("[DEBUG] GameInstance: %p\n", gameinstance);
-                return;
             }
-        } catch (...) {
-            printf("[DEBUG] CRASH PREVENTED: Memory read failed at GameInstance+0x0040\n");
-            printf("[DEBUG] GameInstance pointer likely invalid\n");
+        } catch (...) {}
+        
+        if (!localplayer) {
+            // Try GameInstance+0x0038
+            printf("[DEBUG] Trying GameInstance+0x0038...\n");
+            try {
+                tarray<ulocalplayer*> test_array = memory::read<tarray<ulocalplayer*>>(uintptr_t(gameinstance) + 0x0038);
+                if (test_array.data && test_array.data > 0x10000 && test_array.count > 0 && test_array.count <= 10) {
+                    localplayer = memory::read<ulocalplayer*>((uintptr_t)test_array.data);
+                    if (localplayer && (uintptr_t)localplayer > 0x10000) {
+                        printf("[DEBUG] Found localplayer at GameInstance+0x0038!\n");
+                    }
+                }
+            } catch (...) {}
+        }
+        
+        if (!localplayer) {
+            // Try GameInstance+0x0030
+            printf("[DEBUG] Trying GameInstance+0x0030...\n");
+            try {
+                tarray<ulocalplayer*> test_array = memory::read<tarray<ulocalplayer*>>(uintptr_t(gameinstance) + 0x0030);
+                if (test_array.data && test_array.data > 0x10000 && test_array.count > 0 && test_array.count <= 10) {
+                    localplayer = memory::read<ulocalplayer*>((uintptr_t)test_array.data);
+                    if (localplayer && (uintptr_t)localplayer > 0x10000) {
+                        printf("[DEBUG] Found localplayer at GameInstance+0x0030!\n");
+                    }
+                }
+            } catch (...) {}
+        }
+        
+        if (!localplayer) {
+            printf("[DEBUG] FAILED to find LocalPlayers! Tried offsets: 0x0040, 0x0038, 0x0030\n");
+            printf("[DEBUG] GameInstance: %p, UWorld: %p\n", gameinstance, UWorldClass);
+            printf("[DEBUG] GameInstance+0x0040 raw: 0x%016llX\n", 
+                   memory::read<uint64_t>(uintptr_t(gameinstance) + 0x0040));
             return;
         }
 
