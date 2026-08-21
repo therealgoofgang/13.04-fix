@@ -7856,7 +7856,7 @@ namespace hooks
                 // Check if this looks like a valid tarray
                 if (test_array.count >= 0 && test_array.count <= 10 && test_array.data != 0) {
                     // Try to read the first element to verify
-                    ulocalplayer* test_player = memory::read<ulocalplayer*>(test_array.data);
+                    ulocalplayer* test_player = memory::read<ulocalplayer*>((uintptr_t)test_array.data);
                     if (test_player != 0 && (uintptr_t)test_player > 0x10000) {
                         local_players_array = test_array;
                         localplayer = test_player;
@@ -7887,7 +7887,7 @@ namespace hooks
                 try {
                     local_players_array = memory::read<tarray<ulocalplayer*>>(possible_ptr);
                     if (local_players_array.count > 0 && local_players_array.data != 0) {
-                        localplayer = memory::read<ulocalplayer*>(local_players_array.data);
+                        localplayer = memory::read<ulocalplayer*>((uintptr_t)local_players_array.data);
                         if (localplayer) {
                             printf("[DEBUG] Found via pointer! count: %d, localplayer: %p\n", local_players_array.count, localplayer);
                             found = true;
