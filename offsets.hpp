@@ -50,33 +50,36 @@ namespace AntiAim {
 
 namespace offsets
 {
-    // === CORE & ENGINE ===
-    // TEMPORARY: Using OLD offsets to test crash
-    constexpr uint64_t GWorld = 0xce0cc40;          // OLD offset (from your old file)
+    // === CORE & ENGINE === PATCH 13.04 CORRECT
+    // Function offsets: Use OLD ones that work
+    // GWorld: Use NEW patch 13.04 offset
+    constexpr uint64_t GWorld = 0xced3e90;          // PATCH 13.04 CORRECT (from your dump)
     constexpr uint64_t gworld = GWorld;
     constexpr uint64_t State = GWorld;
     constexpr uint64_t uworldstate = GWorld;
-    constexpr uint64_t GObjects = 0xce898c0;        // OLD offset
+    constexpr uint64_t GObjects = 0xcf4fc50;        // PATCH 13.04 (from your dump)
     constexpr uint64_t ObjectArray = GObjects;
-    constexpr uint64_t FNamePool = 0xcfd1d00;       // OLD offset
+    constexpr uint64_t FNamePool = 0xd09f540;       // PATCH 13.04 (from your dump)
     constexpr uint64_t fname_pool = FNamePool;
     constexpr uint64_t FNameState = 0xcf5f530;
-    constexpr uint64_t TriggerVEH = 0x1ac3116;      // OLD offset
-    constexpr uint64_t process_event = 0x1e7f700;   // OLD offset
-    constexpr uint64_t bone_matrix = 0x433dc40;     // OLD offset
-    constexpr uint64_t fmemory_malloc = 0x1a8c8e0;  // OLD offset
-    constexpr uint64_t static_find_object = 0x1ea5f30; // OLD offset
-    constexpr uint64_t static_load_object = 0x1ea9690; // OLD offset (matches old file despite typo)
-    constexpr uint64_t set_ares_outline_mode = 0x42d4860; // OLD offset
+    
+    // FUNCTION OFFSETS: Use OLD ones that work
+    constexpr uint64_t TriggerVEH = 0x1ac3116;      // OLD (works)
+    constexpr uint64_t process_event = 0x1e7f700;   // OLD (works)
+    constexpr uint64_t bone_matrix = 0x433dc40;     // OLD (works)
+    constexpr uint64_t fmemory_malloc = 0x1a8c8e0;  // OLD (works)
+    constexpr uint64_t static_find_object = 0x1ea5f30; // OLD (works)
+    constexpr uint64_t static_load_object = 0x1ea9690; // OLD (works)
+    constexpr uint64_t set_ares_outline_mode = 0x42d4860; // OLD (works)
     constexpr uint64_t FPakPlatformFile = 0xcf05aa8;
     constexpr uint64_t SigningDelegate = 0xd2ab2c8;
 
-    // === UWORLD & LEVEL STRUCTURES ===
-    constexpr uint64_t PersistentLevel = 0x38; // fallback
-    constexpr uint64_t OwningGameInstance = 0x1d8; // fallback
-    constexpr uint64_t game_instance = 0x1d8; // fallback
-    constexpr uint64_t LocalPlayers = 0x40; // fallback
-    constexpr uint64_t local_players = 0x40; // fallback
+    // === UWORLD & LEVEL STRUCTURES === PATCH 13.04
+    constexpr uint64_t PersistentLevel = 0x38; // from your dump
+    constexpr uint64_t OwningGameInstance = 0x1d8; // from your dump
+    constexpr uint64_t game_instance = 0x1d8; // from your dump
+    constexpr uint64_t LocalPlayers = 0x0040; // from your dump (0x0040 not 0x40)
+    constexpr uint64_t local_players = 0x0040; // from your dump
 
     // === CONTROLLER & PAWN ===
     constexpr uint64_t PlayerController = 0x38; // fallback
