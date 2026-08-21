@@ -7908,8 +7908,8 @@ namespace hooks
                    memory::read<uint64_t>(uintptr_t(gameinstance) + 0x0040));
             
             // SCAN GameInstance memory for LocalPlayer pointer pattern
-            printf("[DEBUG] Scanning GameInstance memory for LocalPlayer...\n");
-            for (uintptr_t offset = 0; offset < 0x500; offset += 8) {
+            printf("[DEBUG] Scanning GameInstance memory for LocalPlayer (0x0-0x1000)...\n");
+            for (uintptr_t offset = 0; offset < 0x1000; offset += 8) {
                 try {
                     uintptr_t test_value = memory::read<uintptr_t>(uintptr_t(gameinstance) + offset);
                     if (test_value > 0x10000 && test_value < 0x7FFFFFFFFFFF) {
@@ -7938,8 +7938,19 @@ namespace hooks
                 printf("[DEBUG] GameInstance+0x20: 0x%016llX\n", memory::read<uint64_t>(uintptr_t(gameinstance) + 0x20));
                 printf("[DEBUG] GameInstance+0x28: 0x%016llX\n", memory::read<uint64_t>(uintptr_t(gameinstance) + 0x28));
                 printf("[DEBUG] GameInstance+0x30: 0x%016llX\n", memory::read<uint64_t>(uintptr_t(gameinstance) + 0x30));
-                printf("[DEBUG] GameInstance+0x38: 0x%016llX\n", memory::read<uint64_t>(uintptr_t(gameinstance) + 0x38));
-                return;
+                printf("[DEBUG] GameInstance+0x38: 0x%016llX (possible seed?)\n", memory::read<uint64_t>(uintptr_t(gameinstance) + 0x38));
+                printf("[DEBUG] GameInstance+0x40: 0x%016llX (encrypted LocalPlayers)\n", memory::read<uint64_t>(uintptr_t(gameinstance) + 0x40));
+                printf("[DEBUG] GameInstance+0x48: 0x%016llX\n", memory::read<uint64_t>(uintptr_t(gameinstance) + 0x48));
+                printf("[DEBUG] GameInstance+0x50: 0x%016llX\n", memory::read<uint64_t>(uintptr_t(gameinstance) + 0x50));
+                printf("[DEBUG] GameInstance+0x58: 0x%016llX\n", memory::read<uint64_t>(uintptr_t(gameinstance) + 0x58));
+                printf("[DEBUG] GameInstance+0x60: 0x%016llX\n", memory::read<uint64_t>(uintptr_t(gameinstance) + 0x60));
+                printf("[DEBUG] GameInstance+0x68: 0x%016llX\n", memory::read<uint64_t>(uintptr_t(gameinstance) + 0x68));
+                printf("[DEBUG] GameInstance+0x70: 0x%016llX\n", memory::read<uint64_t>(uintptr_t(gameinstance) + 0x70));
+                printf("[DEBUG] GameInstance+0x78: 0x%016llX (possible seed offset?)\n", memory::read<uint64_t>(uintptr_t(gameinstance) + 0x78));
+                printf("[DEBUG] WARNING: No LocalPlayer found, but CONTINUING FOR TESTING...\n");
+                // TEMP: Create dummy localplayer for testing
+                localplayer = (ulocalplayer*)gameinstance; // BAD hack, just for testing
+                printf("[DEBUG] USING DUMMY LocalPlayer for testing menu...\n");
             }
         }
         
