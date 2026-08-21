@@ -7858,7 +7858,7 @@ namespace hooks
             0x150, 0x158, 0x160, 0x168
         };
         
-        printf("[DEBUG] Searching %d offsets for LocalPlayers...\n", sizeof(offsets_to_try)/sizeof(offsets_to_try[0]));
+        printf("[DEBUG] Searching %zu offsets for LocalPlayers...\n", sizeof(offsets_to_try)/sizeof(offsets_to_try[0]));
         
         for (auto test_offset : offsets_to_try) {
             try {
@@ -7919,15 +7919,13 @@ namespace hooks
             uintptr_t uworld_offsets[] = {0x1E0, 0x1E8, 0x1F0, 0x1F8, 0x200, 0x208, 0x210, 0x218};
             for (auto offset : uworld_offsets) {
                 try {
-                    tarray<uplayercontroller*> pc_array = memory::read<tarray<uplayercontroller*>>(uintptr_t(UWorldClass) + offset);
+                    tarray<uintptr_t> pc_array = memory::read<tarray<uintptr_t>>(uintptr_t(UWorldClass) + offset);
                     if (pc_array.data && pc_array.count > 0 && pc_array.count <= 20) {
-                        printf("[DEBUG] Found PlayerController array at UWorld+0x%llX, count=%d\n", offset, pc_array.count);
-                        // Get first PlayerController
-                        uplayercontroller* pc = memory::read<uplayercontroller*>(pc_array.data);
+                        printf("[DEBUG] Found array at UWorld+0x%llX, count=%llu\n", offset, (unsigned long long)pc_array.count);
+                        // Get first element
+                        uintptr_t pc = memory::read<uintptr_t>(pc_array.data);
                         if (pc) {
-                            printf("[DEBUG] PlayerController: %p\n", pc);
-                            // Try to get LocalPlayer from PlayerController
-                            // Actually LocalPlayer -> PlayerController, not reverse
+                            printf("[DEBUG] First element: %p\n", (void*)pc);
                         }
                     }
                 } catch (...) {}
@@ -7938,7 +7936,7 @@ namespace hooks
             for (auto offset : gi_offsets) {
                 try {
                     uintptr_t val = memory::read<uintptr_t>(uintptr_t(gameinstance) + offset);
-                    printf("[DEBUG] GameInstance+0x%llX = 0x%016llX\n", offset, val);
+                    printf("[DEBUG] GameInstance+0x%llX = 0x%016llX\n", (unsigned long long)offset, val);
                 } catch (...) {}
             }
             
